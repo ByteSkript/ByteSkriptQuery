@@ -1,0 +1,13 @@
+
+function make_server:
+    trigger:
+        set {var} to a new web server for path "/test" on port 4313
+        start server {var}
+
+on web request:
+    trigger:
+        set {request} to event-request
+        set the response code of {request} to 200
+        set the content type of {request} to "text/html"
+        send page "test.bsq"
+        close request {request}
