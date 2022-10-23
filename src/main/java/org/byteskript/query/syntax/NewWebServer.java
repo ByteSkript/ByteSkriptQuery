@@ -22,11 +22,6 @@ public class NewWebServer extends SimpleExpression {
         handlers.put(StandardHandlers.FIND, findMethod(NewWebServer.class, "createServer", Object.class, Object.class));
     }
     
-    @Override
-    public Pattern.Match match(String thing, Context context) {
-        return super.match(thing, context);
-    }
-    
     public static HttpServer createServer(Object path, Object port) throws IOException {
         if (!(port instanceof Number number))
             throw new ScriptRuntimeError("The provided port was not a number: " + port);
@@ -35,8 +30,13 @@ public class NewWebServer extends SimpleExpression {
         else url = path.toString();
         HttpServer server = HttpServer.create(new InetSocketAddress(number.intValue()), 0);
         server.createContext(url, new RequestHandler(server));
-        server.setExecutor(Skript.getExecutor());
+        server.setExecutor(Skript.localInstance().getExecutor());
         return server;
+    }
+    
+    @Override
+    public Pattern.Match match(String thing, Context context) {
+        return super.match(thing, context);
     }
     
 }

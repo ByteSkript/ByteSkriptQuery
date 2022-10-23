@@ -17,12 +17,6 @@ public class WriteEffect extends Effect {
         handlers.put(StandardHandlers.RUN, findMethod(this.getClass(), "write", Object.class));
     }
     
-    @Override
-    public Pattern.Match match(String thing, Context context) {
-        if (!thing.startsWith("write ")) return null;
-        return super.match(thing, context);
-    }
-    
     public static void write(Object object) {
         if (object == null) return;
         if (!(Thread.currentThread() instanceof ScriptThread thread))
@@ -30,5 +24,11 @@ public class WriteEffect extends Effect {
         if (!(thread.event instanceof RequestEvent event))
             throw new ScriptRuntimeError("The 'write' effect can only be used in the thread from a web request event.");
         event.request.response.append(object);
+    }
+    
+    @Override
+    public Pattern.Match match(String thing, Context context) {
+        if (!thing.startsWith("write ")) return null;
+        return super.match(thing, context);
     }
 }

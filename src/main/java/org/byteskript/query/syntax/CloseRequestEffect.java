@@ -23,12 +23,6 @@ public class CloseRequestEffect extends Effect {
         handlers.put(StandardHandlers.RUN, findMethod(this.getClass(), "close", Object.class));
     }
     
-    @Override
-    public Pattern.Match match(String thing, Context context) {
-        if (!thing.startsWith("close ")) return null;
-        return super.match(thing, context);
-    }
-    
     public static void close(Object object) throws IOException {
         if (object instanceof Request request) {
             final String response = request.response.toString();
@@ -49,5 +43,11 @@ public class CloseRequestEffect extends Effect {
         try (final OutputStream stream = exchange.getResponseBody()) {
             stream.write(response.getBytes(StandardCharsets.UTF_8));
         }
+    }
+    
+    @Override
+    public Pattern.Match match(String thing, Context context) {
+        if (!thing.startsWith("close ")) return null;
+        return super.match(thing, context);
     }
 }

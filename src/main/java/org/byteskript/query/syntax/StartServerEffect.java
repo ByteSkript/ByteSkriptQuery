@@ -15,13 +15,13 @@ public class StartServerEffect extends Effect {
         handlers.put(StandardHandlers.RUN, findMethod(this.getClass(), "start", Object.class));
     }
     
+    public static void start(Object object) {
+        if (object instanceof HttpServer server) server.start();
+    }
+    
     @Override
     public Pattern.Match match(String thing, Context context) {
         if (!thing.startsWith("start ")) return null;
         return super.match(thing, context);
-    }
-    
-    public static void start(Object object) {
-        if (object instanceof HttpServer server) server.start();
     }
 }

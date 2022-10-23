@@ -17,11 +17,6 @@ public class CompiledPage implements Runnable {
         this.runnable = runnable;
     }
     
-    @Override
-    public void run() {
-        runnable.run();
-    }
-    
     private String getHash(File file) {
         try (final InputStream stream = new FileInputStream(file)) {
             final MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -30,6 +25,11 @@ public class CompiledPage implements Runnable {
         } catch (IOException | NoSuchAlgorithmException ex) {
             return "";
         }
+    }
+    
+    @Override
+    public void run() {
+        runnable.run();
     }
     
     public boolean matches(File file) {

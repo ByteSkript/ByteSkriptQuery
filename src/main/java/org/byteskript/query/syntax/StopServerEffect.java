@@ -15,13 +15,13 @@ public class StopServerEffect extends Effect {
         handlers.put(StandardHandlers.RUN, findMethod(this.getClass(), "stop", Object.class));
     }
     
+    public static void stop(Object object) {
+        if (object instanceof HttpServer server) server.stop(0);
+    }
+    
     @Override
     public Pattern.Match match(String thing, Context context) {
         if (!thing.startsWith("stop ")) return null;
         return super.match(thing, context);
-    }
-    
-    public static void stop(Object object) {
-        if (object instanceof HttpServer server) server.stop(0);
     }
 }

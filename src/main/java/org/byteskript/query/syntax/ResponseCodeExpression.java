@@ -34,36 +34,6 @@ public class ResponseCodeExpression extends SimpleExpression implements Referent
         }
     }
     
-    @Override
-    public Pattern.Match match(String thing, Context context) {
-        if (!thing.contains("response code")) return null;
-        return super.match(thing, context);
-    }
-    
-    @Override
-    public Type getReturnType() {
-        return CommonTypes.INTEGER;
-    }
-    
-    @Override
-    public boolean allowAsInputFor(Type type) {
-        return super.allowAsInputFor(type) || type.equals(CommonTypes.REFERENT);
-    }
-    
-    @Override
-    public Type getHolderType() {
-        return CommonTypes.OBJECT;
-    }
-    
-    @Override
-    public void compile(Context context, Pattern.Match match) throws Throwable {
-        final MethodBuilder method = context.getMethod();
-        assert method != null;
-        final Method target = handlers.get(context.getHandlerMode());
-        assert target != null;
-        this.writeCall(method, target, context);
-    }
-    
     public static Integer getProperty(Object object) {
         if (object instanceof Request request)
             return request.code;
@@ -75,6 +45,36 @@ public class ResponseCodeExpression extends SimpleExpression implements Referent
         if (object instanceof Request request)
             request.code = number.intValue();
         return null;
+    }
+    
+    @Override
+    public Pattern.Match match(String thing, Context context) {
+        if (!thing.contains("response code")) return null;
+        return super.match(thing, context);
+    }
+    
+    @Override
+    public boolean allowAsInputFor(Type type) {
+        return super.allowAsInputFor(type) || type.equals(CommonTypes.REFERENT);
+    }
+    
+    @Override
+    public Type getReturnType() {
+        return CommonTypes.INTEGER;
+    }
+    
+    @Override
+    public void compile(Context context, Pattern.Match match) throws Throwable {
+        final MethodBuilder method = context.getMethod();
+        assert method != null;
+        final Method target = handlers.get(context.getHandlerMode());
+        assert target != null;
+        this.writeCall(method, target, context);
+    }
+    
+    @Override
+    public Type getHolderType() {
+        return CommonTypes.OBJECT;
     }
     
 }

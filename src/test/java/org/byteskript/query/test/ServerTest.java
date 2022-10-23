@@ -30,8 +30,8 @@ public class ServerTest {
     }
     
     @Test
-    public void test() {
-        script.getFunction("make_server").invoke();
+    public void test() throws Throwable {
+        script.getFunction("make_server").run().get();
     }
     
     protected static void debug(final PostCompileClass source) throws Throwable {

@@ -16,15 +16,15 @@ public class WebRequestEvent extends EventHolder {
     }
     
     @Override
-    public void compile(Context context, Pattern.Match match) {
-        super.compile(context, match);
-        context.addFlag(Flags.IN_REQUEST);
-    }
-    
-    @Override
     public void onSectionExit(Context context, SectionMeta meta) {
         super.onSectionExit(context, meta);
         context.removeFlag(Flags.IN_REQUEST);
+    }
+    
+    @Override
+    public void compile(Context context, Pattern.Match match) {
+        super.compile(context, match);
+        context.addFlag(Flags.IN_REQUEST);
     }
     
     @Override

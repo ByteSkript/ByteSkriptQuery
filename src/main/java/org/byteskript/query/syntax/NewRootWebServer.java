@@ -22,16 +22,16 @@ public class NewRootWebServer extends SimpleExpression {
         handlers.put(StandardHandlers.FIND, findMethod(NewRootWebServer.class, "createServer"));
     }
     
-    @Override
-    public Pattern.Match match(String thing, Context context) {
-        return super.match(thing, context);
-    }
-    
     public static HttpServer createServer() throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
         server.createContext("/", new RequestHandler(server));
-        server.setExecutor(Skript.currentInstance().getScheduler());
+        server.setExecutor(Skript.localInstance().getScheduler());
         return server;
+    }
+    
+    @Override
+    public Pattern.Match match(String thing, Context context) {
+        return super.match(thing, context);
     }
     
     @Override

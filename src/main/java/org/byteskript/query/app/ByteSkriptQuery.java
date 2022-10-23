@@ -5,6 +5,7 @@ import mx.kenzie.foundation.Type;
 import org.byteskript.query.page.CompiledPage;
 import org.byteskript.query.page.PageCompiler;
 import org.byteskript.query.syntax.*;
+import org.byteskript.query.web.WebPrintStream;
 import org.byteskript.skript.api.ModifiableLibrary;
 import org.byteskript.skript.app.SkriptApp;
 import org.byteskript.skript.compiler.CompileState;
@@ -29,6 +30,7 @@ public class ByteSkriptQuery extends SkriptApp {
     
     public static void load(Skript skript) {
         skript.registerLibrary(LIBRARY);
+        skript.setOutput(new WebPrintStream());
     }
     
     public static Runnable getPage(String path) {

@@ -16,12 +16,6 @@ public class SendPageEffect extends Effect {
         handlers.put(StandardHandlers.RUN, findMethod(this.getClass(), "send", Object.class));
     }
     
-    @Override
-    public Pattern.Match match(String thing, Context context) {
-        if (!thing.startsWith("send ")) return null;
-        return super.match(thing, context);
-    }
-    
     public static void send(Object object) throws IOException {
         if (object == null) return;
         send(object.toString());
@@ -31,5 +25,11 @@ public class SendPageEffect extends Effect {
         final Runnable runnable = ByteSkriptQuery.getPage(page);
         if (runnable == null) return;
         runnable.run();
+    }
+    
+    @Override
+    public Pattern.Match match(String thing, Context context) {
+        if (!thing.startsWith("send ")) return null;
+        return super.match(thing, context);
     }
 }

@@ -32,15 +32,17 @@ public class ContentTypeExpression extends SimpleExpression implements Referent 
         }
     }
     
+    public static Void setProperty(Object object, Object code) {
+        if (code == null) return null;
+        if (object instanceof Request request)
+            request.exchange.getResponseHeaders().set("Content-type", code.toString());
+        return null;
+    }
+    
     @Override
     public Pattern.Match match(String thing, Context context) {
         if (!thing.contains("content type")) return null;
         return super.match(thing, context);
-    }
-    
-    @Override
-    public Type getReturnType() {
-        return CommonTypes.STRING;
     }
     
     @Override
@@ -49,8 +51,8 @@ public class ContentTypeExpression extends SimpleExpression implements Referent 
     }
     
     @Override
-    public Type getHolderType() {
-        return CommonTypes.OBJECT;
+    public Type getReturnType() {
+        return CommonTypes.STRING;
     }
     
     @Override
@@ -62,11 +64,9 @@ public class ContentTypeExpression extends SimpleExpression implements Referent 
         this.writeCall(method, target, context);
     }
     
-    public static Void setProperty(Object object, Object code) {
-        if (code == null) return null;
-        if (object instanceof Request request)
-            request.exchange.getResponseHeaders().set("Content-type", code.toString());
-        return null;
+    @Override
+    public Type getHolderType() {
+        return CommonTypes.OBJECT;
     }
     
 }

@@ -14,8 +14,8 @@ import org.byteskript.skript.compiler.structure.TriggerTree;
 import org.byteskript.skript.error.ScriptCompileError;
 import org.byteskript.skript.error.ScriptParseError;
 import org.byteskript.skript.lang.element.StandardElements;
-import org.byteskript.skript.lang.syntax.entry.Trigger;
-import org.byteskript.skript.lang.syntax.function.NoArgsFunctionMember;
+import org.byteskript.skript.lang.syntax.entry.EntryTriggerSection;
+import org.byteskript.skript.lang.syntax.function.MemberFunctionNoArgs;
 import org.byteskript.skript.runtime.internal.CompiledScript;
 import org.byteskript.skript.runtime.type.AtomicVariable;
 
@@ -32,7 +32,21 @@ import java.util.regex.Pattern;
 public class PageCompiler extends SimpleSkriptCompiler {
     
     private static final Random RANDOM = new Random();
+    private static final Method METHOD;
     
+    static {
+        try {
+            METHOD = WriteEffect.class.getMethod("write", Object.class);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    private final WriteInstruction wrap = WriteInstruction
+        .invokeStatic(new Type(AtomicVariable.class), new Type(AtomicVariable.class), "wrap", CommonTypes.OBJECT);
+    private final WriteInstruction unwrap = WriteInstruction
+        .invokeStatic(new Type(AtomicVariable.class), CommonTypes.OBJECT, "unwrap", CommonTypes.OBJECT);
+    private final Pattern pattern = Pattern.compile("^(?<space>\\s*+)(?=\\S)");
     private int anonymous = 0;
     
     public PageCompiler() {
@@ -49,6 +63,19 @@ public class PageCompiler extends SimpleSkriptCompiler {
         }
     }
     
+    private String unstream(InputStream stream) {
+        final StringBuilder builder = new StringBuilder();
+        try (final Reader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+            int c;
+            while ((c = reader.read()) != -1) {
+                builder.append((char) c);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return builder.toString();
+    }
+
     private Runnable compile(final String content) throws InstantiationException, IllegalAccessException, IOException {
         if (!content.contains("<%")) return () -> WriteEffect.write(content);
         final String name = "Page$" + RANDOM.nextInt(100000, 999999) + RANDOM.nextInt(100000, 999999);
@@ -63,14 +90,16 @@ public class PageCompiler extends SimpleSkriptCompiler {
         return (Runnable) (load(classes[0].code(), type.dotPath())).newInstance();
     }
     
-    private static final Method METHOD;
-    
-    static {
-        try {
-            METHOD = WriteEffect.class.getMethod("write", Object.class);
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
+    private FileContext assemble(String string, Type owner) {
+        final FileContext context = new FileContext(owner);
+        for (final Library library : getLibraries()) {
+            context.addLibrary(library);
+            for (final Type type : library.getTypes()) {
+                context.registerType(type);
+            }
         }
+        this.readFile(string, context);
+        return context;
     }
     
     private void readFile(String string, FileContext context) {
@@ -130,8 +159,8 @@ public class PageCompiler extends SimpleSkriptCompiler {
         context.lineNumber = end - lines.size();
         context.addFlag(AreaFlag.IN_FUNCTION);
         context.createUnit(StandardElements.SECTION);
-        context.addSection(new NoArgsFunctionMember());
-        context.addSection(new Trigger());
+        context.addSection(new MemberFunctionNoArgs());
+        context.addSection(new EntryTriggerSection());
         anonymous++;
         final MethodBuilder method = context.getBuilder()
             .addMethod("func$" + anonymous)
@@ -170,10 +199,19 @@ public class PageCompiler extends SimpleSkriptCompiler {
         context.emptyVariables();
     }
     
-    private final WriteInstruction wrap = WriteInstruction
-        .invokeStatic(new Type(AtomicVariable.class), new Type(AtomicVariable.class), "wrap", CommonTypes.OBJECT);
-    private final WriteInstruction unwrap = WriteInstruction
-        .invokeStatic(new Type(AtomicVariable.class), CommonTypes.OBJECT, "unwrap", CommonTypes.OBJECT);
+    private List<String> adjustOffset(final List<String> lines) {
+        final Matcher matcher = pattern.matcher(lines.get(0));
+        final boolean found = matcher.find();
+        final String indent;
+        if (found) indent = matcher.group("space");
+        else return lines;
+        if (indent.length() == 0) return lines;
+        final List<String> trimmed = new ArrayList<>();
+        for (final String line : lines) {
+            trimmed.add(line.substring(indent.length()));
+        }
+        return trimmed;
+    }
     
     private WriteInstruction prepareVariables(TriggerTree context) {
         return (writer, visitor) -> {
@@ -195,47 +233,6 @@ public class PageCompiler extends SimpleSkriptCompiler {
                 i++;
             }
         };
-    }
-    
-    private final Pattern pattern = Pattern.compile("^(?<space>\\s*+)(?=\\S)");
-    
-    private List<String> adjustOffset(final List<String> lines) {
-        final Matcher matcher = pattern.matcher(lines.get(0));
-        final boolean found = matcher.find();
-        final String indent;
-        if (found) indent = matcher.group("space");
-        else return lines;
-        if (indent.length() == 0) return lines;
-        final List<String> trimmed = new ArrayList<>();
-        for (final String line : lines) {
-            trimmed.add(line.substring(indent.length()));
-        }
-        return trimmed;
-    }
-    
-    private FileContext assemble(String string, Type owner) {
-        final FileContext context = new FileContext(owner);
-        for (final Library library : getLibraries()) {
-            context.addLibrary(library);
-            for (final Type type : library.getTypes()) {
-                context.registerType(type);
-            }
-        }
-        this.readFile(string, context);
-        return context;
-    }
-    
-    private String unstream(InputStream stream) {
-        final StringBuilder builder = new StringBuilder();
-        try (final Reader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
-            int c;
-            while ((c = reader.read()) != -1) {
-                builder.append((char) c);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return builder.toString();
     }
     
 }
